@@ -28,7 +28,6 @@
         }
         #underImage {
             visibility: hidden; /* Ukryj obraz pod spodem na początku */
-            transition: visibility 0s linear 0.1s; /* Opóźnienie pokazania o 0.1s */
         }
         #scratchCanvas {
             touch-action: none;
@@ -37,13 +36,11 @@
 </head>
 <body>
     <div id="container">
-        <img id="underImage" src="example-scratch.jpg" alt="Zdjęcie pod spodem">
         <canvas id="scratchCanvas"></canvas>
     </div>
     <script>
         const canvas = document.getElementById('scratchCanvas');
         const ctx = canvas.getContext('2d');
-        const underImage = document.getElementById('underImage');
         let canvasWidth, canvasHeight;
 
         function resizeCanvas() {
@@ -55,40 +52,30 @@
             const imgTop = new Image();
             const imgBottom = new Image();
 
+            imgBottom.src = 'sweet-scratch.png';
             imgTop.src = 'uuu.png';
-            imgBottom.src = 'example-scratch.jpg';
-
-            imgTop.onload = function() {
-                const aspectRatioTop = imgTop.width / imgTop.height;
-                const aspectRatioBottom = imgBottom.width / imgBottom.height;
-                let scaledWidthTop, scaledHeightTop;
-                let scaledWidthBottom, scaledHeightBottom;
-                let xTop = 0, yTop = 0;
-
-                if (aspectRatioTop > aspectRatioBottom) {
-                    // Obraz na wierzchu jest szerszy
-                    scaledWidthTop = canvasWidth;
-                    scaledHeightTop = scaledWidthTop / aspectRatioTop;
-                    xTop = 0;
-                    yTop = (canvasHeight - scaledHeightTop) / 2;
-                } else {
-                    // Obraz na wierzchu jest wyższy lub mają takie same proporcje
-                    scaledHeightTop = canvasHeight;
-                    scaledWidthTop = scaledHeightTop * aspectRatioTop;
-                    yTop = 0;
-                    xTop = (canvasWidth - scaledWidthTop) / 2;
-                }
-
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                ctx.drawImage(imgTop, xTop, yTop, scaledWidthTop, scaledHeightTop);
-                ctx.globalCompositeOperation = 'destination-out';
-            };
 
             imgBottom.onload = function() {
-                // Pokaż obraz pod spodem dopiero po pełnym załadowaniu strony
-                setTimeout(() => {
-                    underImage.style.visibility = 'visible';
-                }, 300); // Opóźnienie pokazania o 300ms, aby upewnić się, że strona jest w pełni załadowana
+                imgTop.onload = function() {
+                    // Dopasowanie proporcji obrazów
+                    const aspectRatio = Math.max(
+                        imgTop.width / imgTop.height,
+                        imgBottom.width / imgBottom.height
+                    );
+
+                    const scaledWidth = canvasWidth;
+                    const scaledHeight = canvasWidth / aspectRatio;
+
+                    // Dopasowanie do canvasu
+                    const x = (canvasWidth - scaledWidth) / 2;
+                    const y = (canvasHeight - scaledHeight) / 2;
+
+                    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                    ctx.drawImage(imgBottom, x, y, scaledWidth, scaledHeight);
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.drawImage(imgTop, x, y, scaledWidth, scaledHeight);
+                    ctx.globalCompositeOperation = 'destination-out';
+                };
             };
         }
 
@@ -118,7 +105,7 @@
             evt.preventDefault();
             const pos = evt.type.includes('touch') ? getTouchPos(canvas, evt) : getMousePos(canvas, evt);
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 7, 0, 2 * Math.PI); // Zmniejszam promień do 10 pikseli
+            ctx.arc(pos.x, pos.y, 12, 0, 2 * Math.PI); // Zmniejszam promień do 12 pikseli
             ctx.fill();
         }
 
@@ -131,8 +118,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
