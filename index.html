@@ -24,10 +24,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
-        }
-        #underImage {
-            visibility: hidden; /* Ukryj obraz pod spodem na początku */
+            object-fit: cover;
         }
         #scratchCanvas {
             touch-action: none;
@@ -36,11 +33,13 @@
 </head>
 <body>
     <div id="container">
+        <img id="underImage" src="sweet-scratch.png" alt="Zdjęcie pod spodem">
         <canvas id="scratchCanvas"></canvas>
     </div>
     <script>
         const canvas = document.getElementById('scratchCanvas');
         const ctx = canvas.getContext('2d');
+        const underImage = document.getElementById('underImage');
         let canvasWidth, canvasHeight;
 
         function resizeCanvas() {
@@ -52,29 +51,25 @@
             const imgTop = new Image();
             const imgBottom = new Image();
 
-            imgBottom.src = 'sweet-scratch.png';
             imgTop.src = 'uuu.png';
+            imgBottom.src = 'sweet-scratch.png';
 
-            imgBottom.onload = function() {
-                imgTop.onload = function() {
-                    // Dopasowanie proporcji obrazów
-                    const aspectRatio = Math.max(
-                        imgTop.width / imgTop.height,
-                        imgBottom.width / imgBottom.height
-                    );
-
-                    const scaledWidth = canvasWidth;
-                    const scaledHeight = canvasWidth / aspectRatio;
-
-                    // Dopasowanie do canvasu
-                    const x = (canvasWidth - scaledWidth) / 2;
-                    const y = (canvasHeight - scaledHeight) / 2;
+            imgTop.onload = function() {
+                imgBottom.onload = function() {
+                    underImage.style.visibility = 'hidden'; // Ukryj obraz pod spodem
 
                     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                    ctx.drawImage(imgBottom, x, y, scaledWidth, scaledHeight);
+                    
+                    // Rysuj obraz pod spodem
+                    ctx.drawImage(imgBottom, 0, 0, canvasWidth, canvasHeight);
                     ctx.globalCompositeOperation = 'source-over';
-                    ctx.drawImage(imgTop, x, y, scaledWidth, scaledHeight);
+
+                    // Rysuj obraz na wierzchu
+                    ctx.drawImage(imgTop, 0, 0, canvasWidth, canvasHeight);
                     ctx.globalCompositeOperation = 'destination-out';
+
+                    // Pokaż obraz pod spodem po nałożeniu obrazów
+                    underImage.style.visibility = 'visible';
                 };
             };
         }
@@ -105,7 +100,7 @@
             evt.preventDefault();
             const pos = evt.type.includes('touch') ? getTouchPos(canvas, evt) : getMousePos(canvas, evt);
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 12, 0, 2 * Math.PI); // Zmniejszam promień do 12 pikseli
+            ctx.arc(pos.x, pos.y, 12, 0, 2 * Math.PI);
             ctx.fill();
         }
 
